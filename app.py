@@ -99,14 +99,12 @@ def applicant_form(prefix):
     else:
         monthly_income = avg_paycheck * 1
     
-    has_other_income = st.checkbox(f"{prefix} Other Income?")
-    other_income_total = 0.0
-    if has_other_income:
-        other_income_count = st.number_input(f"{prefix} Number of Other Income Sources", min_value=1, max_value=5, value=1)
-        other_incomes = [st.number_input(f"{prefix} Other Income {i+1} ($)", min_value=0.0, value=0.0) for i in range(other_income_count)]
-        other_income_total = sum(other_incomes)
+    has_bankruptcy = st.checkbox(f"{prefix} Has Bankruptcy?")
+    bankruptcy_count = st.number_input(f"{prefix} Number of Bankruptcies", min_value=0, value=0) if has_bankruptcy else 0
     
-    total_income = monthly_income + other_income_total
+    has_repossession = st.checkbox(f"{prefix} Has Repossession?")
+    repossession_count = st.number_input(f"{prefix} Number of Repossessions", min_value=0, value=0) if has_repossession else 0
+    
     car_payment = st.number_input(f"{prefix} Monthly Car Payment ($)", min_value=0.0, value=0.0)
     total_expenses = st.number_input(f"{prefix} Total Monthly Expenses ($)", min_value=0.0, value=0.0)
     
@@ -117,38 +115,33 @@ def applicant_form(prefix):
         "employment_type": employment_type,
         "age": age,
         "pay_frequency": pay_frequency,
-        "monthly_income": total_income,
+        "monthly_income": monthly_income,
         "car_payment": car_payment,
-        "total_expenses": total_expenses
+        "total_expenses": total_expenses,
+        "bankruptcy_count": bankruptcy_count,
+        "repossession_count": repossession_count
     }
 
 applicant_data = applicant_form("Primary")
-
 has_cobuyer = st.checkbox("Is there a Co-Buyer?")
 cobuyer_data = applicant_form("Co-Buyer") if has_cobuyer else None
 
 if st.button("Evaluate Risk"):
-    total_income = applicant_data["monthly_income"] + (cobuyer_data["monthly_income"] if cobuyer_data else 0)
-    total_expenses = applicant_data["total_expenses"] + (cobuyer_data["total_expenses"] if cobuyer_data else 0)
-    car_payment = applicant_data["car_payment"] + (cobuyer_data["car_payment"] if cobuyer_data else 0)
-    net_income = total_income - total_expenses
-    
     risk_score, risk_factors = classify_risk(
         applicant_data["employment_length"],
         applicant_data["employment_type"],
         applicant_data["age"],
-        total_income,
-        net_income,
-        car_payment,
-        0,
-        0,
+        applicant_data["monthly_income"],
+        applicant_data["monthly_income"] - applicant_data["total_expenses"],
+        applicant_data["car_payment"],
+        applicant_data["bankruptcy_count"],
+        applicant_data["repossession_count"],
         0,
         0
     )
 
     st.subheader("Risk Evaluation")
     st.write(f"Risk Score: {risk_score}")
-    
     if risk_score >= 8:
         st.write("High risk: High probability of repossession with less than 25% payments.")
     elif risk_score >= 5:
