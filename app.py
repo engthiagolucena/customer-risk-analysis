@@ -125,3 +125,6 @@ def applicant_form(prefix):
     }
 
 applicant_data = applicant_form("Primary")
+
+if st.button("Evaluate Risk"):
+    st.write("Risk evaluation process initiated...")
