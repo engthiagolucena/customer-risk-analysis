@@ -127,4 +127,28 @@ def applicant_form(prefix):
 applicant_data = applicant_form("Primary")
 
 if st.button("Evaluate Risk"):
-    st.write("Risk evaluation process initiated...")
+    risk_score, risk_factors = classify_risk(
+        applicant_data["employment_length"],
+        applicant_data["employment_type"],
+        applicant_data["age"],
+        applicant_data["monthly_income"],
+        applicant_data["monthly_income"] - applicant_data["total_expenses"],
+        applicant_data["car_payment"],
+        0,
+        0,
+        applicant_data["downpayment"],
+        0
+    )
+    
+    st.subheader("Risk Evaluation")
+    st.write(f"Risk Score: {risk_score}")
+    
+    if risk_score >= 8:
+        st.write("High risk: High probability of repossession with less than 25% payments.")
+    elif risk_score >= 5:
+        st.write("Moderate risk: Repossession risk after more than 50% payments.")
+    else:
+        st.write("Low risk: High chance of full payoff.")
+    
+    for factor in risk_factors:
+        st.write(f"- {factor}")
