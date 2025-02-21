@@ -155,5 +155,13 @@ if st.button("Evaluate Risk"):
     
     st.subheader("Risk Evaluation")
     st.write(f"Risk Score: {risk_score}")
+
+    if risk_score >= 8:
+        st.write("🔴 **High Risk:** High probability of repossession with less than 25% payments.")
+    elif risk_score >= 5:
+        st.write("🟡 **Moderate Risk:** Repossession risk after more than 50% payments.")
+    else:
+        st.write("🟢 **Low Risk:** High chance of full payoff.")
+
     for factor in risk_factors:
         st.write(f"- {factor}")
