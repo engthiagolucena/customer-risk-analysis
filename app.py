@@ -119,12 +119,9 @@ def applicant_form(prefix):
     repossession_count = st.number_input(f"{prefix} Number of Repossessions", min_value=0, value=0) if has_repossession else 0
 
     return {
-        "first_name": first_name,
-        "last_name": last_name,
         "employment_length": employment_length,
         "employment_type": employment_type,
         "age": age,
-        "pay_frequency": pay_frequency,
         "monthly_income": total_income,
         "car_payment": car_payment,
         "total_expenses": total_expenses,
@@ -135,29 +132,28 @@ def applicant_form(prefix):
 
 applicant_data = applicant_form("Primary")
 
+has_cobuyer = st.checkbox("Is there a Co-Buyer?")
+cobuyer_data = applicant_form("Co-Buyer") if has_cobuyer else None
+
 if st.button("Evaluate Risk"):
+    total_income = applicant_data["monthly_income"] + (cobuyer_data["monthly_income"] if cobuyer_data else 0)
+    total_expenses = applicant_data["total_expenses"] + (cobuyer_data["total_expenses"] if cobuyer_data else 0)
+    car_payment = applicant_data["car_payment"] + (cobuyer_data["car_payment"] if cobuyer_data else 0)
+    
     risk_score, risk_factors = classify_risk(
         applicant_data["employment_length"],
         applicant_data["employment_type"],
         applicant_data["age"],
-        applicant_data["monthly_income"],
-        applicant_data["monthly_income"] - applicant_data["total_expenses"],
-        applicant_data["car_payment"],
-        applicant_data["bankruptcy_count"],
-        applicant_data["repossession_count"],
+        total_income,
+        total_income - total_expenses,
+        car_payment,
+        applicant_data["bankruptcy_count"] + (cobuyer_data["bankruptcy_count"] if cobuyer_data else 0),
+        applicant_data["repossession_count"] + (cobuyer_data["repossession_count"] if cobuyer_data else 0),
         applicant_data["downpayment"],
         0
     )
     
     st.subheader("Risk Evaluation")
     st.write(f"Risk Score: {risk_score}")
-    
-    if risk_score >= 8:
-        st.write("High risk: High probability of repossession with less than 25% payments.")
-    elif risk_score >= 5:
-        st.write("Moderate risk: Repossession risk after more than 50% payments.")
-    else:
-        st.write("Low risk: High chance of full payoff.")
-    
     for factor in risk_factors:
         st.write(f"- {factor}")
