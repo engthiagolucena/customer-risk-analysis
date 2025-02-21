@@ -110,7 +110,14 @@ def applicant_form(prefix):
     car_payment = st.number_input(f"{prefix} Monthly Car Payment ($)", min_value=0.0, value=0.0)
     total_expenses = st.number_input(f"{prefix} Total Monthly Expenses ($)", min_value=0.0, value=0.0)
     downpayment = st.number_input(f"{prefix} Downpayment ($)", min_value=0.0, value=0.0)
-    
+
+    st.subheader(f"{prefix} Credit History")
+    has_bankruptcy = st.checkbox(f"{prefix} Has Bankruptcy?")
+    bankruptcy_count = st.number_input(f"{prefix} Number of Bankruptcies", min_value=0, value=0) if has_bankruptcy else 0
+
+    has_repossession = st.checkbox(f"{prefix} Has Repossessions?")
+    repossession_count = st.number_input(f"{prefix} Number of Repossessions", min_value=0, value=0) if has_repossession else 0
+
     return {
         "first_name": first_name,
         "last_name": last_name,
@@ -121,7 +128,9 @@ def applicant_form(prefix):
         "monthly_income": total_income,
         "car_payment": car_payment,
         "total_expenses": total_expenses,
-        "downpayment": downpayment
+        "downpayment": downpayment,
+        "bankruptcy_count": bankruptcy_count,
+        "repossession_count": repossession_count
     }
 
 applicant_data = applicant_form("Primary")
@@ -134,8 +143,8 @@ if st.button("Evaluate Risk"):
         applicant_data["monthly_income"],
         applicant_data["monthly_income"] - applicant_data["total_expenses"],
         applicant_data["car_payment"],
-        0,
-        0,
+        applicant_data["bankruptcy_count"],
+        applicant_data["repossession_count"],
         applicant_data["downpayment"],
         0
     )
